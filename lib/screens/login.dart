@@ -29,7 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context) => HomeAdmin(),
         ),
       );
-    } else if (username == "douroub" && password == "client") {
+    } else if (username == "douroub" && password == "client")
+    {
       // Navigate to HomeClient
       Navigator.pushReplacement(
         context,
@@ -38,9 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
+
       setState(() {
         errorMessage = "Invalid username or password";
       });
+
     }
   }
 

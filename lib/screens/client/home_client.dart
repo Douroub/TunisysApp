@@ -11,8 +11,10 @@ class HomeClient extends StatefulWidget {
 class _HomeClientState extends State<HomeClient> {
   String? selectedCity;
   String? selectedOperation;
+  String? selectedLocation;
   bool showAmountField = false;
   TextEditingController amountController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
 
   final List<String> cities = [
     'Ariana',
@@ -40,8 +42,6 @@ class _HomeClientState extends State<HomeClient> {
     'Zaghouan'
   ]; // Add your cities here
   final List<String> operations = ['Retrais', 'Change', 'Dépôt'];
-
-  get addressController => null;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +91,7 @@ class _HomeClientState extends State<HomeClient> {
                   onPressed: () {
                     _showLocationOptions(context);
                   },
-                  child: Text('Localisation'),
+                  child: Text(selectedLocation ?? 'Localisation'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(120, 163, 195, 0.652),
                     textStyle: TextStyle(fontSize: 18),
@@ -165,19 +165,22 @@ class _HomeClientState extends State<HomeClient> {
       builder: (context) {
         return AlertDialog(
           title: Text('Sélectionner une ville'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: cities.map((city) {
-              return ListTile(
-                title: Text(city),
-                onTap: () {
-                  setState(() {
-                    selectedCity = city;
-                  });
-                  Navigator.of(context).pop();
-                },
-              );
-            }).toList(),
+          content: Container(
+            width: double.minPositive,
+            height: 300, // Ajustez la hauteur selon vos besoins
+            child: ListView(
+              children: cities.map((city) {
+                return ListTile(
+                  title: Text(city),
+                  onTap: () {
+                    setState(() {
+                      selectedCity = city;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                );
+              }).toList(),
+            ),
           ),
         );
       },
@@ -222,6 +225,9 @@ class _HomeClientState extends State<HomeClient> {
               title: Text('Utiliser la localisation automatique'),
               onTap: () {
                 // Handle automatic location
+                setState(() {
+                  selectedLocation = "Localisation automatique";
+                });
                 Navigator.of(context).pop();
               },
             ),
@@ -261,7 +267,9 @@ class _HomeClientState extends State<HomeClient> {
             ),
             ElevatedButton(
               onPressed: () {
-                // Handle manual address input
+                setState(() {
+                  selectedLocation = addressController.text;
+                });
                 Navigator.of(context).pop();
               },
               child: Text('OK'),

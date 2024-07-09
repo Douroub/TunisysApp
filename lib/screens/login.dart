@@ -29,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context) => HomeAdmin(),
         ),
       );
-    } else if (username == "douroub" && password == "technicien") {
+    } else if (username == "douroub" && password == "client") {
       // Navigate to HomeClient
       Navigator.pushReplacement(
         context,

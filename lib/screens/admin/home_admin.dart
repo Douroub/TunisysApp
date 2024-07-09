@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tunisys_app/screens/client/dab_info.dart';
 
 class HomeAdmin extends StatefulWidget {
   const HomeAdmin({Key? key}) : super(key: key);
@@ -39,6 +40,8 @@ class __HomeAdminState extends State<HomeAdmin> {
     'Zaghouan'
   ]; // Add your cities here
   final List<String> operations = ['Retrais', 'Change', 'Dépôt'];
+
+  get addressController => null;
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +89,7 @@ class __HomeAdminState extends State<HomeAdmin> {
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Handle location input
+                    _showLocationOptions(context);
                   },
                   child: Text('Localisation'),
                   style: ElevatedButton.styleFrom(
@@ -135,7 +138,12 @@ class __HomeAdminState extends State<HomeAdmin> {
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Handle validation and submission
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DabInfo(),
+                      ),
+                    );
                   },
                   child: Text('Valider'),
                   style: ElevatedButton.styleFrom(
@@ -157,19 +165,22 @@ class __HomeAdminState extends State<HomeAdmin> {
       builder: (context) {
         return AlertDialog(
           title: Text('Sélectionner une ville'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: cities.map((city) {
-              return ListTile(
-                title: Text(city),
-                onTap: () {
-                  setState(() {
-                    selectedCity = city;
-                  });
-                  Navigator.of(context).pop();
-                },
-              );
-            }).toList(),
+          content: Container(
+            width: double.minPositive,
+            height: 300, // Ajustez la hauteur selon vos besoins
+            child: ListView(
+              children: cities.map((city) {
+                return ListTile(
+                  title: Text(city),
+                  onTap: () {
+                    setState(() {
+                      selectedCity = city;
+                    });
+                    Navigator.of(context).pop();
+                  },
+                );
+              }).toList(),
+            ),
           ),
         );
       },
@@ -197,6 +208,68 @@ class __HomeAdminState extends State<HomeAdmin> {
               );
             }).toList(),
           ),
+        );
+      },
+    );
+  }
+
+  void _showLocationOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.location_on),
+              title: Text('Utiliser la localisation automatique'),
+              onTap: () {
+                // Handle automatic location
+                Navigator.of(context).pop();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.edit_location),
+              title: Text('Entrer une adresse manuellement'),
+              onTap: () {
+                Navigator.of(context).pop();
+                _showManualAddressDialog(context);
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showManualAddressDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Entrer une adresse'),
+          content: TextField(
+            controller: addressController,
+            decoration: InputDecoration(
+              hintText: 'Adresse',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Handle manual address input
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
         );
       },
     );

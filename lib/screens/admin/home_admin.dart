@@ -143,7 +143,7 @@ class __HomeAdminState extends State<HomeAdmin> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => DabInfo(),
+                        builder: (context) => DabAdInfo(),
                       ),
                     );
                   },

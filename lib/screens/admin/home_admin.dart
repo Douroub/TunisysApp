@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tunisys_app/screens/admin/dab_ad_info.dart';
+import 'package:tunisys_app/screens/admin/dab_details.dart';
 import 'package:tunisys_app/screens/client/dab_info.dart';
 
 class HomeAdmin extends StatefulWidget {
@@ -63,70 +65,6 @@ class __HomeAdminState extends State<HomeAdmin> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Image.asset(
-                'assets/map.png', // Ensure you have this image in your assets folder
-                height: 150,
-              ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _showCitySelectionDialog(context);
-                  },
-                  child: Text(selectedCity ?? 'Ville'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(120, 163, 195, 0.652),
-                    textStyle: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _showLocationOptions(context);
-                  },
-                  child: Text('Localisation'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(120, 163, 195, 0.652),
-                    textStyle: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 60,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _showOperationSelectionDialog(context);
-                  },
-                  child: Text(selectedOperation ?? "Type d'opération"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color.fromRGBO(120, 163, 195, 0.652),
-                    textStyle: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-              if (showAmountField) ...[
-                SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: TextField(
-                    controller: amountController,
-                    decoration: InputDecoration(
-                      labelText: 'Montant',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20.0),
-                      ),
-                      filled: true,
-                      fillColor: Color.fromRGBO(120, 163, 195, 0.652),
                     ),
                     keyboardType: TextInputType.number,
                   ),

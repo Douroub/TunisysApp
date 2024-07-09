@@ -11,8 +11,10 @@ class HomeAdmin extends StatefulWidget {
 class __HomeAdminState extends State<HomeAdmin> {
   String? selectedCity;
   String? selectedOperation;
+  String? selectedLocation;
   bool showAmountField = false;
   TextEditingController amountController = TextEditingController();
+  TextEditingController addressController = TextEditingController();
 
   final List<String> cities = [
     'Ariana',
@@ -40,8 +42,6 @@ class __HomeAdminState extends State<HomeAdmin> {
     'Zaghouan'
   ]; // Add your cities here
   final List<String> operations = ['Retrais', 'Change', 'Dépôt'];
-
-  get addressController => null;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +91,7 @@ class __HomeAdminState extends State<HomeAdmin> {
                   onPressed: () {
                     _showLocationOptions(context);
                   },
-                  child: Text('Localisation'),
+                  child: Text(selectedLocation ?? 'Localisation'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(120, 163, 195, 0.652),
                     textStyle: TextStyle(fontSize: 18),
@@ -225,6 +225,9 @@ class __HomeAdminState extends State<HomeAdmin> {
               title: Text('Utiliser la localisation automatique'),
               onTap: () {
                 // Handle automatic location
+                setState(() {
+                  selectedLocation = "Localisation automatique";
+                });
                 Navigator.of(context).pop();
               },
             ),
@@ -264,7 +267,9 @@ class __HomeAdminState extends State<HomeAdmin> {
             ),
             ElevatedButton(
               onPressed: () {
-                // Handle manual address input
+                setState(() {
+                  selectedLocation = addressController.text;
+                });
                 Navigator.of(context).pop();
               },
               child: Text('OK'),

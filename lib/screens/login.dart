@@ -31,14 +31,16 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context) => HomeAdmin(),
         ),
       );
-    } else {
+    } else if (username == "technicien" && password == "technicien") {
       // Navigate to HomeClient
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => DabInfo(),
+          builder: (context) => HomeClient(),
         ),
       );
+    } else {
+      Text("User Doesn't Exist");
     }
   }
 

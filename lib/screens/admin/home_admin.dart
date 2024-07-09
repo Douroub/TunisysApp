@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:tunisys_app/screens/admin/dab_ad_info.dart';
+import 'package:tunisys_app/screens/admin/dab_details.dart';
 import 'package:tunisys_app/screens/client/dab_info.dart';
 import 'package:tunisys_app/screens/login.dart';
 // Assuming DabInfo screen is imported from this file
@@ -40,7 +42,7 @@ class _HomeAdminState extends State<HomeAdmin> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => DabInfo(),
+                      builder: (context) => DabAdInfo(),
                     ),
                   );
                 },

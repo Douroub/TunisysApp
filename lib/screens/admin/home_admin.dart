@@ -93,7 +93,7 @@ class __HomeAdminState extends State<HomeAdmin> {
                   onPressed: () {
                     _showLocationOptions(context);
                   },
-                  child: Text('Localisation'),
+                  child: Text(selectedLocation ?? 'Localisation'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color.fromRGBO(120, 163, 195, 0.652),
                     textStyle: TextStyle(fontSize: 18),

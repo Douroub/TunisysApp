@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:tunisys_app/components/text_field.dart';
 import 'package:tunisys_app/screens/admin/home_admin.dart';
-import 'package:tunisys_app/screens/client/dab_info.dart';
 import 'package:tunisys_app/screens/client/home_client.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -31,7 +29,8 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context) => HomeAdmin(),
         ),
       );
-    } else if (username == "technicien" && password == "technicien") {
+    } else if (username == "douroub" && password == "client")
+    {
       // Navigate to HomeClient
       Navigator.pushReplacement(
         context,
@@ -40,7 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
-      Text("User Doesn't Exist");
+
+      setState(() {
+        errorMessage = "Invalid username or password";
+      });
+
     }
   }
 

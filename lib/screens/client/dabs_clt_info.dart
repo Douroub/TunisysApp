@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/login.dart';
 
-class DabInfo extends StatefulWidget {
-  const DabInfo({Key? key}) : super(key: key);
+class DabCltInfo extends StatefulWidget {
+  const DabCltInfo({Key? key}) : super(key: key);
 
   @override
-  _DabInfoState createState() => _DabInfoState();
+  _DabCltInfoState createState() => _DabCltInfoState();
 }
 
-class _DabInfoState extends State<DabInfo> {
+class _DabCltInfoState extends State<DabCltInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

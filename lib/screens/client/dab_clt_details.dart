@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:tunisys_app/screens/admin/home_admin.dart';
+import 'package:tunisys_app/screens/client/home_client.dart';
 import 'package:tunisys_app/screens/login.dart';
 
-class DabDetails extends StatefulWidget {
-  const DabDetails({Key? key}) : super(key: key);
+class DabCltDetails extends StatefulWidget {
+  const DabCltDetails({Key? key}) : super(key: key);
 
   @override
-  _DabDetailsState createState() => _DabDetailsState();
+  _DabCltDetailsState createState() => _DabCltDetailsState();
 }
 
-class _DabDetailsState extends State<DabDetails> {
+class _DabCltDetailsState extends State<DabCltDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +36,7 @@ class _DabDetailsState extends State<DabDetails> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeAdmin(),
+                builder: (context) => HomeClient(),
               ),
             );
           },
@@ -64,62 +64,21 @@ class _DabDetailsState extends State<DabDetails> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Terminal Id : 002080',
+                            'DAB name: -----',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Distance: --km',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),
+                          ),
                           Text(
                             'Adresse: Ariana, Ville',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Cassettes Id: ----D',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Type: 200',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Currency: TND',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Loaded: 1000',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Remaining Notes : 937',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Total Notes : 937',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Remaining Cassette Cash TND  : 1874000',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Total Current Cash Amount TND : 1874000',
                             style: TextStyle(
                               fontSize: 16,
                             ),

@@ -48,7 +48,7 @@ class _DabCltDetailsState extends State<DabCltDetails> {
           children: [
             Container(
               width: 400, // Set your desired width
-              height: 330, // Set your desired height
+              height: 150, // Set your desired height
               child: Card(
                 color:
                     Color(0xFFF2D5D5), // Set the background color of the card

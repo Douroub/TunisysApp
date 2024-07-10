@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tunisys_app/screens/admin/dab_ad_info.dart';
-import 'package:tunisys_app/screens/admin/dab_details.dart';
-import 'package:tunisys_app/screens/client/dab_info.dart';
+import 'package:tunisys_app/screens/admin/dabs_ad_info.dart';
 
 class HomeAdmin extends StatefulWidget {
   const HomeAdmin({Key? key}) : super(key: key);

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tunisys_app/screens/admin/dab_details.dart';
+import 'package:tunisys_app/screens/admin/dab_ad_details.dart';
 import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/login.dart';
 
@@ -50,7 +50,7 @@ class _DabAdInfoState extends State<DabAdInfo> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => DabDetails(),
+                builder: (context) => DabAdDetails(),
               ),
             );
           },

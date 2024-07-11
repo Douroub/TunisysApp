@@ -33,7 +33,6 @@ dependencies:
   
   url_launcher: ^6.1.5
   geolocator: ^7.6.2
-  #Ngeolocator: ^9.0.0
   geocoding: ^2.0.0
   
   # The following adds the Cupertino Icons font to your application.

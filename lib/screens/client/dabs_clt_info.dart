@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:tunisys_app/screens/client/dab_clt_details.dart';
-import 'package:tunisys_app/screens/client/home_client.dart';
+import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/login.dart';
 
 class DabCltInfo extends StatefulWidget {

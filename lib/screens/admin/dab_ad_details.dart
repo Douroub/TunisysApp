@@ -184,6 +184,13 @@ class _DabAdDetailsState extends State<DabAdDetails> {
                 },
               ),
             ),
+            SizedBox(
+              height: 10,
+            ),
+            Image.asset(
+                'assets/maps.png', // Ensure you have this image in your assets folder
+                height: 170,
+                width: 330),
           ],
         ),
       ),

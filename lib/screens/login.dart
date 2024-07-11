@@ -23,15 +23,20 @@ class _LoginScreenState extends State<LoginScreen> {
     // Check credentials
     if (username == "nizar" && password == "admin") {
       // Navigate to HomeAdmin
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => HomeAdmin(),
         ),
       );
-    } else if (username == "douroub" && password == "client")
-    {
+    } else if (username == "douroub" && password == "client") {
       // Navigate to HomeClient
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -39,11 +44,9 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
     } else {
-
       setState(() {
         errorMessage = "Invalid username or password";
       });
-
     }
   }
 

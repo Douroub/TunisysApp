@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/client/dab_clt_details.dart';
+import 'home_client.dart';
 import 'package:tunisys_app/screens/login.dart';
 
 class DabCltInfo extends StatefulWidget {
@@ -37,7 +37,7 @@ class _DabCltInfoState extends State<DabCltInfo> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeAdmin(),
+                builder: (context) => HomeClient(),
               ),
             );
           },

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:tunisys_app/screens/admin/dabs_ad_info.dart';
 
 class HomeAdmin extends StatefulWidget {
@@ -223,12 +225,10 @@ class __HomeAdminState extends State<HomeAdmin> {
             ListTile(
               leading: Icon(Icons.location_on),
               title: Text('Utiliser la localisation automatique'),
-              onTap: () {
-                // Handle automatic location
-                setState(() {
-                  selectedLocation = "Localisation automatique";
-                });
-                Navigator.of(context).pop();
+              onTap: () async {
+                Navigator.of(context)
+                    .pop(); // Fermer le modal avant de commencer à obtenir la localisation
+                await _determinePosition();
               },
             ),
             ListTile(
@@ -243,6 +243,48 @@ class __HomeAdminState extends State<HomeAdmin> {
         );
       },
     );
+  }
+
+  Future<void> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled, don't continue.
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, don't continue.
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, don't continue.
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    Placemark place = placemarks[0];
+
+    setState(() {
+      selectedLocation =
+          "${place.street}, ${place.locality}, ${place.postalCode}, ${place.country}";
+    });
+
+    // Print latitude and longitude in console
+    print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');
   }
 
   void _showManualAddressDialog(BuildContext context) {

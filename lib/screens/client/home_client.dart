@@ -226,8 +226,9 @@ class _HomeClientState extends State<HomeClient> {
               leading: Icon(Icons.location_on),
               title: Text('Utiliser la localisation automatique'),
               onTap: () async {
+                Navigator.of(context)
+                    .pop(); // Fermer le modal avant de commencer à obtenir la localisation
                 await _determinePosition();
-                Navigator.of(context).pop();
               },
             ),
             ListTile(
@@ -281,6 +282,9 @@ class _HomeClientState extends State<HomeClient> {
       selectedLocation =
           "${place.street}, ${place.locality}, ${place.postalCode}, ${place.country}";
     });
+
+    // Print latitude and longitude in console
+    print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');
   }
 
   void _showManualAddressDialog(BuildContext context) {

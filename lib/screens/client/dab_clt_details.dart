@@ -3,7 +3,7 @@ import 'package:tunisys_app/screens/client/home_client.dart';
 import 'package:tunisys_app/screens/login.dart';
 
 class DabCltDetails extends StatefulWidget {
-  const DabCltDetails({Key? key}) : super(key: key);
+  const DabCltDetails({Key? key, required dab}) : super(key: key);
 
   @override
   _DabCltDetailsState createState() => _DabCltDetailsState();

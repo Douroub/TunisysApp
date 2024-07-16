@@ -3,7 +3,7 @@ import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/login.dart';
 
 class DabAdDetails extends StatefulWidget {
-  const DabAdDetails({Key? key}) : super(key: key);
+  const DabAdDetails({Key? key, required dab}) : super(key: key);
 
   @override
   _DabAdDetailsState createState() => _DabAdDetailsState();

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -33,7 +36,8 @@ class __HomeAdminState extends State<HomeAdmin> {
     'Mahdia',
     'Manouba',
     'Médenine',
-    'Monastir,Nabeul',
+    'Monastir',
+    'Nabeul',
     'Sfax',
     'Sidi Bouzid',
     'Siliana',
@@ -140,12 +144,7 @@ class __HomeAdminState extends State<HomeAdmin> {
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DabAdInfo(),
-                      ),
-                    );
+                    _navigateToDabInfo(context);
                   },
                   child: Text('Valider'),
                   style: ElevatedButton.styleFrom(
@@ -285,6 +284,46 @@ class __HomeAdminState extends State<HomeAdmin> {
 
     // Print latitude and longitude in console
     print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');
+  }
+
+  Future<List<dynamic>> _fetchNearestDabs() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition();
+      var client = HttpClient()
+        ..badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
+      var url =
+          Uri.parse('https://172.28.3.163:8443/feelview/map/getNearestDevice');
+      var request = await client.postUrl(url);
+      request.headers.set('Content-Type', 'application/json');
+      request.headers
+          .set('Referer', 'https://172.28.3.163:8443/feelview/map/demo');
+      request.add(utf8.encode(json.encode({
+        'longitude': position.longitude.toString(),
+        'latitude': position.latitude.toString(),
+      })));
+      var response = await request.close();
+      var responseBody = await response.transform(utf8.decoder).join();
+      var jsonData = json.decode(responseBody);
+      print(jsonData);
+
+      return jsonData['data'];
+    } catch (e) {
+      print('Error: $e');
+      return [];
+    }
+  }
+
+  void _navigateToDabInfo(BuildContext context) async {
+    List<dynamic> dabsData = await _fetchNearestDabs();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DabAdInfo(
+          dabsData: dabsData,
+        ),
+      ),
+    );
   }
 
   void _showManualAddressDialog(BuildContext context) {

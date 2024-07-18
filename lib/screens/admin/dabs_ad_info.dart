@@ -16,8 +16,8 @@ class DabAdInfo extends StatefulWidget {
 
 class _DabAdInfoState extends State<DabAdInfo> {
   late List<dynamic> dabs;
-  late double userLatitude;
-  late double userLongitude;
+  late double userLatitude = 0.0;
+  late double userLongitude = 0.0;
 
   @override
   void initState() {
@@ -124,7 +124,7 @@ class _DabAdInfoState extends State<DabAdInfo> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF2D5D5),
-        title: Text('DABs Informations'),
+        title: Text('DABs List'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),

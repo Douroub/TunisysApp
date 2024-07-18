@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tunisys_app/screens/login.dart';
 import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/client/home_client.dart';
+import 'package:tunisys_app/screens/pre_login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -37,8 +38,9 @@ class MyApp extends StatelessWidget {
       ),
       //home: const LoginScreen(title: 'Flutter Demo Home Page'),
       debugShowCheckedModeBanner: false,
-      initialRoute: '/login',
+      initialRoute: '/prelogin',
       routes: {
+        '/prelogin': (context) => const PreLoginPage(),
         '/login': (context) => const LoginScreen(
               title: '',
             ),

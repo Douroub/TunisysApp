@@ -1,21 +1,163 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:tunisys_app/screens/client/home_client.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:tunisys_app/screens/client/dabs_clt_info.dart';
 import 'package:tunisys_app/screens/login.dart';
+import 'dart:math';
 
 class DabCltDetails extends StatefulWidget {
-  const DabCltDetails({Key? key, required dab}) : super(key: key);
+  final dynamic dab;
+
+  const DabCltDetails({Key? key, required this.dab}) : super(key: key);
 
   @override
   _DabCltDetailsState createState() => _DabCltDetailsState();
 }
 
 class _DabCltDetailsState extends State<DabCltDetails> {
+  late double userLatitude = 0.0;
+  late double userLongitude = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _getUserLocation();
+  }
+
+  Future<void> _getUserLocation() async {
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      userLatitude = position.latitude;
+      userLongitude = position.longitude;
+    });
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const double R = 6371; // Radius of the Earth in km
+    final double dLat = _degreesToRadians(lat2 - lat1);
+    final double dLon = _degreesToRadians(lon2 - lon1);
+    final double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
+  }
+
+  String getOpenStatus(dynamic dab) {
+    String beginTimeStr = dab['deviceInfo']['businessBegintime'] ?? '00:00:00';
+    String endTimeStr = dab['deviceInfo']['businessEndtime'] ?? '23:59:59';
+    bool isOpen = false;
+
+    DateTime now = DateTime.now();
+    DateTime beginTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        int.parse(beginTimeStr.split(":")[0]),
+        int.parse(beginTimeStr.split(":")[1]));
+    DateTime endTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        int.parse(endTimeStr.split(":")[0]),
+        int.parse(endTimeStr.split(":")[1]));
+
+    int hoursUntilClose = endTime.difference(now).inHours;
+    if (hoursUntilClose > 0) {
+      isOpen = true;
+    }
+
+    if (endTime.difference(beginTime).inHours == 24) {
+      return 'Toujours ouvert - 24h';
+    } else if (isOpen) {
+      return 'Ouvert - ferme à ${endTimeStr.substring(0, 5)}';
+    } else {
+      return 'Fermé - ferme à ${endTimeStr.substring(0, 5)}';
+    }
+  }
+
+  Color getOpenStatusColor(dynamic dab) {
+    String beginTimeStr = dab['deviceInfo']['businessBegintime'] ?? '00:00:00';
+    String endTimeStr = dab['deviceInfo']['businessEndtime'] ?? '23:59:59';
+
+    DateTime now = DateTime.now();
+    DateTime beginTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        int.parse(beginTimeStr.split(":")[0]),
+        int.parse(beginTimeStr.split(":")[1]));
+    DateTime endTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        int.parse(endTimeStr.split(":")[0]),
+        int.parse(endTimeStr.split(":")[1]));
+
+    int hoursUntilClose = endTime.difference(now).inHours;
+
+    if (hoursUntilClose > 0 || endTime.difference(beginTime).inHours == 24) {
+      return Colors.green;
+    } else {
+      return Colors.red;
+    }
+  }
+
+  Future<List<dynamic>> _fetchNearestDabs() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition();
+      var client = HttpClient()
+        ..badCertificateCallback =
+            (X509Certificate cert, String host, int port) => true;
+      var url =
+          Uri.parse('https://172.28.3.163:8443/feelview/map/getNearestDevice');
+      var request = await client.postUrl(url);
+      request.headers.set('Content-Type', 'application/json');
+      request.headers
+          .set('Referer', 'https://172.28.3.163:8443/feelview/map/demo');
+      request.add(utf8.encode(json.encode({
+        'longitude': position.longitude.toString(),
+        'latitude': position.latitude.toString(),
+      })));
+      var response = await request.close();
+      var responseBody = await response.transform(utf8.decoder).join();
+      var jsonData = json.decode(responseBody);
+      print(jsonData);
+
+      return jsonData['data'];
+    } catch (e) {
+      print('Error: $e');
+      return [];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    var dab = widget.dab;
+
+    // Calculer la distance entre l'utilisateur et le DAB
+    double latitude = double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
+    double longitude = double.tryParse(dab['deviceInfo']['longitude']) ?? 0.0;
+    double distance = _calculateDistance(
+      userLatitude,
+      userLongitude,
+      latitude,
+      longitude,
+    );
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF2D5D5),
-        title: Text('DAB Information'),
+        title: Text('DAB Informations'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),
@@ -32,11 +174,14 @@ class _DabCltDetailsState extends State<DabCltDetails> {
         ],
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.red),
-          onPressed: () {
+          onPressed: () async {
+            List<dynamic> dabsData = await _fetchNearestDabs();
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeClient(),
+                builder: (context) => DabCltInfo(
+                  dabsData: dabsData,
+                ),
               ),
             );
           },
@@ -64,7 +209,7 @@ class _DabCltDetailsState extends State<DabCltDetails> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'DAB name: -----',
+                            'DAB name: ${dab['deviceInfo']['termName'] ?? 'N/A'}',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -72,13 +217,13 @@ class _DabCltDetailsState extends State<DabCltDetails> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            'Distance: --km',
+                            'Distance: ${distance.toStringAsFixed(2)} km',
                             style: TextStyle(
                               fontSize: 16,
                             ),
                           ),
                           Text(
-                            'Adresse: Ariana, Ville',
+                            'Adresse: ${dab['deviceInfo']['deptName'] ?? 'N/A'}, ${dab['deviceInfo']['location'] ?? 'N/A'}',
                             style: TextStyle(
                               fontSize: 16,
                             ),
@@ -87,17 +232,10 @@ class _DabCltDetailsState extends State<DabCltDetails> {
                             text: TextSpan(
                               children: [
                                 TextSpan(
-                                  text: 'Ouvert: ',
+                                  text: getOpenStatus(dab),
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'Ferme à 23h',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.green,
+                                    color: getOpenStatusColor(dab),
                                   ),
                                 ),
                               ],

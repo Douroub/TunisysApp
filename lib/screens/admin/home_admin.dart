@@ -59,7 +59,7 @@ class __HomeAdminState extends State<HomeAdmin> {
             icon: Icon(Icons.logout, color: Colors.red),
             onPressed: () {
               // Handle logout action, navigate to login page
-              Navigator.pushReplacementNamed(context, '/login');
+              Navigator.pushReplacementNamed(context, '/prelogin');
             },
           ),
         ],

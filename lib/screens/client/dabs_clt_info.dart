@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tunisys_app/screens/client/dab_clt_details.dart';
 import 'package:tunisys_app/screens/client/home_client.dart';
 import 'package:tunisys_app/screens/login.dart';
+import 'package:tunisys_app/screens/pre_login.dart';
 
 class DabCltInfo extends StatefulWidget {
   final List<dynamic> dabsData;
@@ -30,7 +31,7 @@ class _DabCltInfoState extends State<DabCltInfo> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LoginScreen(title: 'Log'),
+                  builder: (context) => PreLoginPage(),
                 ),
               );
             },

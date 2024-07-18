@@ -60,7 +60,7 @@ class _HomeClientState extends State<HomeClient> {
             icon: Icon(Icons.logout, color: Colors.red),
             onPressed: () {
               // Handle logout action, navigate to login page
-              Navigator.pushReplacementNamed(context, '/login');
+              Navigator.pushReplacementNamed(context, '/prelogin');
             },
           ),
         ],

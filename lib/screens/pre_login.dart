@@ -19,7 +19,8 @@ class _PreLoginPageState extends State<PreLoginPage> {
           children: <Widget>[
             Image.asset(
               'assets/tunisys.png',
-              height: 100,
+              width: 220,
+              height: 150,
             ),
             SizedBox(height: 40),
             Row(
@@ -76,7 +77,7 @@ class OptionButton extends StatelessWidget {
         children: <Widget>[
           Container(
             decoration: BoxDecoration(
-              color: Color.fromARGB(255, 214, 11, 11),
+              color: Colors.red.shade50,
               shape: BoxShape.circle,
             ),
             padding: EdgeInsets.all(20),

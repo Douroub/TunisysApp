@@ -7,6 +7,8 @@ import 'package:tunisys_app/screens/client/dabs_clt_info.dart';
 import 'package:tunisys_app/screens/login.dart';
 import 'dart:math';
 
+import 'package:tunisys_app/screens/pre_login.dart';
+
 class DabCltDetails extends StatefulWidget {
   final dynamic dab;
 
@@ -166,7 +168,7 @@ class _DabCltDetailsState extends State<DabCltDetails> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LoginScreen(title: 'Log'),
+                  builder: (context) => PreLoginPage(),
                 ),
               );
             },

@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:tunisys_app/screens/admin/dab_ad_details.dart';
 import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/login.dart';
+import 'package:tunisys_app/screens/pre_login.dart';
 
 class DabAdInfo extends StatefulWidget {
   final List<dynamic> dabsData;
@@ -133,7 +134,7 @@ class _DabAdInfoState extends State<DabAdInfo> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LoginScreen(title: 'Log'),
+                  builder: (context) => PreLoginPage(),
                 ),
               );
             },

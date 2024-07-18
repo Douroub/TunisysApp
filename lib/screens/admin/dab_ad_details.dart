@@ -7,6 +7,8 @@ import 'package:tunisys_app/screens/login.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:math';
 
+import 'package:tunisys_app/screens/pre_login.dart';
+
 class DabAdDetails extends StatefulWidget {
   final dynamic dab;
 
@@ -166,7 +168,7 @@ class _DabAdDetailsState extends State<DabAdDetails> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LoginScreen(title: 'Log'),
+                  builder: (context) => PreLoginPage(),
                 ),
               );
             },

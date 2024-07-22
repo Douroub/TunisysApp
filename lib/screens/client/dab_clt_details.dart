@@ -6,7 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:tunisys_app/screens/client/dabs_clt_info.dart';
 import 'package:tunisys_app/screens/login.dart';
 import 'dart:math';
-
+import 'package:url_launcher/url_launcher.dart';
 import 'package:tunisys_app/screens/pre_login.dart';
 
 class DabCltDetails extends StatefulWidget {
@@ -142,6 +142,41 @@ class _DabCltDetailsState extends State<DabCltDetails> {
     }
   }
 
+  void _launchSimpleUrl() async {
+    const String testUrl = 'https://www.google.com';
+
+    try {
+      if (await canLaunch(testUrl)) {
+        await launch(testUrl);
+      } else {
+        throw 'Could not launch $testUrl';
+      }
+    } catch (e) {
+      print('Error launching URL: $e');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Could not launch URL.')));
+    }
+  }
+
+  void _launchMaps(double lat, double lon) async {
+    final String googleMapsUrl = Uri.encodeFull(
+        "https://www.google.com/maps/dir/?api=1&origin=$userLatitude,$userLongitude&destination=$lat,$lon&travelmode=driving");
+
+    print('Launching URL: $googleMapsUrl'); // Debugging line
+
+    try {
+      if (await canLaunch(googleMapsUrl)) {
+        await launch(googleMapsUrl);
+      } else {
+        throw 'Could not launch $googleMapsUrl';
+      }
+    } catch (e) {
+      print('Error launching URL: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch Google Maps.')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var dab = widget.dab;
@@ -155,11 +190,11 @@ class _DabCltDetailsState extends State<DabCltDetails> {
       latitude,
       longitude,
     );
+    _launchMaps(latitude, longitude);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF2D5D5),
-        title: Text('DAB Informations'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),
@@ -274,12 +309,11 @@ class _DabCltDetailsState extends State<DabCltDetails> {
                 icon: Icon(Icons.map),
                 label: Text("Lineariser"),
                 onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LoginScreen(title: 'Log'),
-                    ),
-                  );
+                  final double latitude =
+                      double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
+                  final double longitude =
+                      double.tryParse(dab['deviceInfo']['longitude']) ?? 0.0;
+                  _launchMaps(latitude, longitude);
                 },
               ),
             ),

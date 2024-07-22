@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:tunisys_app/screens/client/dab_clt_details.dart';
 import 'package:tunisys_app/screens/client/home_client.dart';
 import 'package:tunisys_app/screens/login.dart';
@@ -14,11 +17,112 @@ class DabCltInfo extends StatefulWidget {
 }
 
 class _DabCltInfoState extends State<DabCltInfo> {
+  late List<dynamic> dabs;
+  late double userLatitude = 0.0;
+  late double userLongitude = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    dabs = widget.dabsData;
+    _getUserLocation();
+  }
+
+  Future<void> _getUserLocation() async {
+    Position position = await Geolocator.getCurrentPosition();
+    setState(() {
+      userLatitude = position.latitude;
+      userLongitude = position.longitude;
+    });
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const double R = 6371; // Radius of the Earth in km
+    final double dLat = _degreesToRadians(lat2 - lat1);
+    final double dLon = _degreesToRadians(lon2 - lon1);
+    final double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(lat1)) *
+            cos(_degreesToRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
+  }
+
+  String getOpenStatus(dynamic dab) {
+    // Obtenir les heures de début et de fin d'ouverture
+    String beginTimeStr = dab['deviceInfo']['businessBegintime'] ?? '00:00:00';
+    String endTimeStr = dab['deviceInfo']['businessEndtime'] ?? '23:59:59';
+
+    // Obtenir l'heure actuelle
+    DateTime now = DateTime.now();
+    DateTime beginTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(beginTimeStr.split(":")[0]),
+      int.parse(beginTimeStr.split(":")[1]),
+    );
+    DateTime endTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(endTimeStr.split(":")[0]),
+      int.parse(endTimeStr.split(":")[1]),
+    );
+
+    // Calculer le nombre d'heures jusqu'à la fermeture
+    int hoursUntilClose = endTime.difference(now).inHours;
+    bool isOpen = hoursUntilClose > 0;
+
+    if (isOpen) {
+      if (now.isBefore(endTime) && beginTime.isBefore(now)) {
+        return 'Ouvert - ferme à ${endTimeStr.substring(0, 5)} h';
+      } else if (endTime.difference(beginTime).inHours == 24) {
+        return 'Toujours ouvert - 24h';
+      }
+    } else {
+      return 'Fermé - ouvre à ${beginTimeStr.substring(0, 5)} h';
+    }
+
+    return 'Statut inconnu';
+  }
+
+  Color getOpenStatusColor(dynamic dab) {
+    // Obtenir les heures de début et de fin d'ouverture
+    String beginTimeStr = dab['deviceInfo']['businessBegintime'] ?? '00:00:00';
+    String endTimeStr = dab['deviceInfo']['businessEndtime'] ?? '23:59:59';
+
+    // Obtenir l'heure actuelle
+    DateTime now = DateTime.now();
+    DateTime beginTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(beginTimeStr.split(":")[0]),
+      int.parse(beginTimeStr.split(":")[1]),
+    );
+    DateTime endTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(endTimeStr.split(":")[0]),
+      int.parse(endTimeStr.split(":")[1]),
+    );
+
+    // Calculer le nombre d'heures jusqu'à la fermeture
+    int hoursUntilClose = endTime.difference(now).inHours;
+
+    return hoursUntilClose > 0 ? Colors.green : Colors.red;
+  }
+
   @override
   Widget build(BuildContext context) {
-    List<dynamic> dabs = widget.dabsData;
-    print('Rendering DABs: $dabs'); // Log to check if dabs are being passed
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF2D5D5),
@@ -39,12 +143,7 @@ class _DabCltInfoState extends State<DabCltInfo> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.red),
           onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomeClient(),
-              ),
-            );
+            Navigator.of(context).pop();
           },
         ),
       ),
@@ -54,8 +153,18 @@ class _DabCltInfoState extends State<DabCltInfo> {
           itemCount: dabs.length,
           itemBuilder: (context, index) {
             var dab = dabs[index];
-            var deviceInfo = dab['deviceInfo'];
-            var deviceStatus = dab['deviceStatus'];
+
+            double latitude =
+                double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
+            double longitude =
+                double.tryParse(dab['deviceInfo']['longitude']) ?? 0.0;
+
+            double distance = _calculateDistance(
+              userLatitude,
+              userLongitude,
+              latitude,
+              longitude,
+            );
 
             return GestureDetector(
               onTap: () {
@@ -85,7 +194,7 @@ class _DabCltInfoState extends State<DabCltInfo> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'DAB name: ${deviceInfo['termName'] ?? 'N/A'}',
+                              'DAB name: ${dab['deviceInfo']['termName'] ?? 'N/A'}',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -93,13 +202,13 @@ class _DabCltInfoState extends State<DabCltInfo> {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              'Distance: -- km', // You can calculate and pass the distance here if needed
+                              'Distance: ${distance.toStringAsFixed(2)} km', // Display calculated distance
                               style: TextStyle(
                                 fontSize: 16,
                               ),
                             ),
                             Text(
-                              'Adresse: ${deviceInfo['deptName'] ?? 'N/A'}, ${deviceInfo['termAddr'] ?? 'N/A'}',
+                              'Adresse: ${dab['deviceInfo']['deptName'] ?? 'N/A'}, ${dab['deviceInfo']['location'] ?? 'N/A'}',
                               style: TextStyle(
                                 fontSize: 16,
                               ),
@@ -138,43 +247,5 @@ class _DabCltInfoState extends State<DabCltInfo> {
         ),
       ),
     );
-  }
-
-  String getOpenStatus(dynamic dab) {
-    String beginTimeStr = dab['deviceInfo']['businessBegintime'] ?? '00:00:00';
-    String endTimeStr = dab['deviceInfo']['businessEndtime'] ?? '23:59:59';
-    bool isOpen = dab['deviceStatus']['isOpen'] ?? false;
-
-    DateTime now = DateTime.now();
-    DateTime beginTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        int.parse(beginTimeStr.split(":")[0]),
-        int.parse(beginTimeStr.split(":")[1]));
-    DateTime endTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        int.parse(endTimeStr.split(":")[0]),
-        int.parse(endTimeStr.split(":")[1]));
-
-    if (isOpen) {
-      if (now.isBefore(endTime)) {
-        int hoursUntilClose = endTime.difference(now).inHours;
-        return 'Ouvert - ferme à ${endTimeStr.substring(0, 5)} h';
-      } else if (endTime.difference(beginTime).inHours == 24) {
-        return 'Toujours ouvert - 24h';
-      }
-    } else {
-      return 'Fermé - ferme à ${endTimeStr.substring(0, 5)} h';
-    }
-
-    return 'Statut inconnu';
-  }
-
-  Color getOpenStatusColor(dynamic dab) {
-    bool isOpen = dab['deviceStatus']['isOpen'] ?? false;
-    return isOpen ? Colors.green : Colors.red;
   }
 }

@@ -219,7 +219,6 @@ class _DabAdDetailsState extends State<DabAdDetails> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF2D5D5),
-        title: Text('DAB Informations'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),

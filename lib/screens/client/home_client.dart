@@ -55,6 +55,12 @@ class _HomeClientState extends State<HomeClient> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.red.shade50,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.red),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),
@@ -145,7 +151,7 @@ class _HomeClientState extends State<HomeClient> {
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
-                    _navigateToDabInfo(context);
+                    _navigateToDabList(context);
                   },
                   child: Text('Valider'),
                   style: ElevatedButton.styleFrom(
@@ -306,21 +312,16 @@ class _HomeClientState extends State<HomeClient> {
       var response = await request.close();
       var responseBody = await response.transform(utf8.decoder).join();
       var jsonData = json.decode(responseBody);
-      print('API response: $jsonData'); // Log entire response
+      print(jsonData);
 
-      List<dynamic> dabsData = jsonData['data']['result'];
-      print('Parsed dabs data: $dabsData'); // Log parsed data
-
-      // Filter the dabsData if the operation is 'Retrais' and an amount is specified
-
-      return dabsData;
+      return jsonData['data'];
     } catch (e) {
       print('Error: $e');
       return [];
     }
   }
 
-  void _navigateToDabInfo(BuildContext context) async {
+  Future<void> _navigateToDabList(BuildContext context) async {
     List<dynamic> dabsData = await _fetchNearestDabs();
     Navigator.pushReplacement(
       context,

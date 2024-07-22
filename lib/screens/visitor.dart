@@ -61,6 +61,15 @@ class _VisitorPageState extends State<VisitorPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.red.shade50,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout, color: Colors.red),
+            onPressed: () {
+              // Handle logout action, navigate to login page
+              Navigator.pushReplacementNamed(context, '/prelogin');
+            },
+          ),
+        ],
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.red),
           onPressed: () {

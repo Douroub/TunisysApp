@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:tunisys_app/screens/admin/AccesCashAdmin.dart';
+import 'package:tunisys_app/screens/admin/AccesDispoAdmin.dart';
+import 'package:tunisys_app/screens/admin/accesAdmin.dart';
+import 'package:tunisys_app/screens/admin/dabs_ad_list.dart';
+import 'package:tunisys_app/screens/client/dab_clt_details.dart';
+import 'package:tunisys_app/screens/client/dabs_clt_info.dart';
 import 'package:tunisys_app/screens/login.dart';
 import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/client/home_client.dart';
 import 'package:tunisys_app/screens/pre_login.dart';
+import 'package:tunisys_app/screens/visitor.dart';
 
 void main() {
   runApp(const MyApp());
@@ -41,6 +48,30 @@ class MyApp extends StatelessWidget {
       initialRoute: '/prelogin',
       routes: {
         '/prelogin': (context) => const PreLoginPage(),
+        '/visitor': (context) => const VisitorPage(),
+        '/homeclient': (context) => const HomeClient(),
+        '/homeAdmin': (context) => const HomeAdmin(),
+        '/dabscltlist': (context) => const DabCltInfo(
+              dabsData: [],
+            ),
+        '/dabsadlist': (context) => const DabAdInfo(
+              dabsData: [],
+            ),
+        '/dabscltdetails': (context) => const DabCltDetails(
+              dab: null,
+            ),
+        '/dabaddetails': (context) => const DabCltDetails(
+              dab: null,
+            ),
+        '/accesadmin': (context) => const AccesAdmin(
+              dabsData: [],
+            ),
+        '/accescashadmin': (context) => const AccescashAdmin(
+              dabsData: [],
+            ),
+        '/accesdispoadmin': (context) => const AccesDispoAdmin(
+              dabsData: [],
+            ),
         '/login': (context) => const LoginScreen(
               title: '',
             ),

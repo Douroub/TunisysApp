@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:tunisys_app/screens/client/home_client.dart';
-import 'package:tunisys_app/screens/pre_login.dart';
 
 class VisitorPage extends StatefulWidget {
   const VisitorPage({Key? key}) : super(key: key);
@@ -41,8 +40,9 @@ class _VisitorPageState extends State<VisitorPage> {
 
   Future<void> saveDataToTextFile() async {
     try {
-      Directory directory = await getApplicationDocumentsDirectory();
-      String outputFilePath = '${directory.path}/visitor_data.txt';
+      // Get the current directory of the project
+      Directory projectDirectory = Directory.current;
+      String outputFilePath = '${projectDirectory.path}/visitor_data.txt';
 
       String dataToSave =
           'Email: ${emailController.text}, Numéro téléphone: ${phoneNumberController.text}, Banque: ${selectedBank ?? ''}\n';
@@ -67,7 +67,7 @@ class _VisitorPageState extends State<VisitorPage> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => PreLoginPage(),
+                builder: (context) => HomeClient(),
               ),
             );
           },

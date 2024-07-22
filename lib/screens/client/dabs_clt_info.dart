@@ -22,7 +22,6 @@ class _DabCltInfoState extends State<DabCltInfo> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF2D5D5),
-        title: Text('DABs List'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),

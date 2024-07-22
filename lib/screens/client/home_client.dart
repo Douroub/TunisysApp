@@ -287,23 +287,6 @@ class _HomeClientState extends State<HomeClient> {
     print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');
   }
 
-  bool canDispenseAmount(dynamic dab, int amount) {
-    try {
-      List<dynamic> boxStatusDetails =
-          json.decode(dab['deviceStatus']['boxStatusDetail']);
-      for (var box in boxStatusDetails) {
-        print('Checking box: $box'); // Log for debugging
-        if ((box['bd'] != '-' || box['bd'] != null) &&
-            int.parse(box['blmc']) >= amount) {
-          return true;
-        }
-      }
-    } catch (e) {
-      print('Error in canDispenseAmount: $e');
-    }
-    return false;
-  }
-
   Future<List<dynamic>> _fetchNearestDabs() async {
     try {
       Position position = await Geolocator.getCurrentPosition();
@@ -329,11 +312,6 @@ class _HomeClientState extends State<HomeClient> {
       print('Parsed dabs data: $dabsData'); // Log parsed data
 
       // Filter the dabsData if the operation is 'Retrais' and an amount is specified
-      if (selectedOperation == 'Retrais' && amountController.text.isNotEmpty) {
-        int amount = int.parse(amountController.text);
-        dabsData =
-            dabsData.where((dab) => canDispenseAmount(dab, amount)).toList();
-      }
 
       return dabsData;
     } catch (e) {

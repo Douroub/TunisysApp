@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:tunisys_app/screens/admin/dabs_ad_info.dart';
+import 'package:tunisys_app/screens/admin/accesAdmin.dart';
+import 'package:tunisys_app/screens/admin/dabs_ad_list.dart';
 
 class HomeAdmin extends StatefulWidget {
   const HomeAdmin({Key? key}) : super(key: key);
@@ -47,13 +48,24 @@ class __HomeAdminState extends State<HomeAdmin> {
     'Tunis',
     'Zaghouan'
   ]; // Add your cities here
-  final List<String> operations = ['Retrais', 'Change', 'Dépôt'];
+  final List<String> operations = [
+    'Retrais',
+    'Change',
+    'Dépôt',
+    'Accès administratif'
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.red.shade50,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.red),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),
@@ -144,7 +156,7 @@ class __HomeAdminState extends State<HomeAdmin> {
                 height: 60,
                 child: ElevatedButton(
                   onPressed: () {
-                    _navigateToDabInfo(context);
+                    _navigateToDabList(context);
                   },
                   child: Text('Valider'),
                   style: ElevatedButton.styleFrom(
@@ -314,16 +326,27 @@ class __HomeAdminState extends State<HomeAdmin> {
     }
   }
 
-  void _navigateToDabInfo(BuildContext context) async {
+  Future<void> _navigateToDabList(BuildContext context) async {
     List<dynamic> dabsData = await _fetchNearestDabs();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DabAdInfo(
-          dabsData: dabsData,
+    if (selectedOperation == 'Accès administratif') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AccesAdmin(
+            dabsData: dabsData,
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DabAdInfo(
+            dabsData: dabsData,
+          ),
+        ),
+      );
+    }
   }
 
   void _showManualAddressDialog(BuildContext context) {

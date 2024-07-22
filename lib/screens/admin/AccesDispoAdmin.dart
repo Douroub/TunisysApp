@@ -1,21 +1,23 @@
+import 'dart:convert';
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'package:tunisys_app/screens/admin/accesAdmin.dart';
 import 'package:tunisys_app/screens/admin/dab_ad_details.dart';
 import 'package:tunisys_app/screens/admin/home_admin.dart';
 import 'package:tunisys_app/screens/login.dart';
 import 'package:tunisys_app/screens/pre_login.dart';
 
-class DabAdInfo extends StatefulWidget {
+class AccesDispoAdmin extends StatefulWidget {
   final List<dynamic> dabsData;
-  const DabAdInfo({Key? key, required this.dabsData}) : super(key: key);
+  const AccesDispoAdmin({Key? key, required this.dabsData}) : super(key: key);
 
   @override
-  _DabAdInfoState createState() => _DabAdInfoState();
+  _AccesDispoAdminState createState() => _AccesDispoAdminState();
 }
 
-class _DabAdInfoState extends State<DabAdInfo> {
+class _AccesDispoAdminState extends State<AccesDispoAdmin> {
   late List<dynamic> dabs;
   late double userLatitude = 0.0;
   late double userLongitude = 0.0;
@@ -120,8 +122,49 @@ class _DabAdInfoState extends State<DabAdInfo> {
     return hoursUntilClose > 0 ? Colors.green : Colors.red;
   }
 
+  Map<String, String> getDabStatus(int statusId) {
+    switch (statusId) {
+      case 0:
+        return {'text': 'Normal', 'color': 'green'};
+      case 1:
+        return {'text': 'UNKNOWN', 'color': 'gray'};
+      case 2:
+        return {'text': 'PARTIAL FAULT', 'color': 'orange'};
+      case 3:
+        return {'text': 'WARNING', 'color': 'yellow'};
+      case 4:
+        return {'text': 'MAINTENANCE', 'color': 'blue'};
+      case 6:
+        return {'text': 'FAULT', 'color': 'red'};
+      default:
+        return {'text': 'UNKNOWN', 'color': 'gray'};
+    }
+  }
+
+  Color getStatusColor(String color) {
+    switch (color) {
+      case 'green':
+        return Colors.green;
+      case 'gray':
+        return Colors.grey;
+      case 'orange':
+        return Colors.orange;
+      case 'yellow':
+        return Colors.yellow;
+      case 'blue':
+        return Colors.blue;
+      case 'red':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    print('Building widget');
+    print('Dabs data: ${dabs.length} items');
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF2D5D5),
@@ -146,7 +189,9 @@ class _DabAdInfoState extends State<DabAdInfo> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeAdmin(),
+                builder: (context) => AccesAdmin(
+                  dabsData: [],
+                ),
               ),
             );
           },
@@ -158,6 +203,7 @@ class _DabAdInfoState extends State<DabAdInfo> {
           itemCount: dabs.length,
           itemBuilder: (context, index) {
             var dab = dabs[index];
+            print('Processing DAB: ${dab['deviceInfo']['termName']}');
 
             double latitude =
                 double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
@@ -170,6 +216,9 @@ class _DabAdInfoState extends State<DabAdInfo> {
               latitude,
               longitude,
             );
+            int statusId =
+                int.tryParse(dab['deviceStatus']['deviceStatusId']) ?? -1;
+            Map<String, String> status = getDabStatus(statusId);
 
             return GestureDetector(
               onTap: () {
@@ -182,7 +231,7 @@ class _DabAdInfoState extends State<DabAdInfo> {
               },
               child: Container(
                 width: 400, // Set your desired width
-                height: 150, // Set your desired height
+                height: 180, // Set your desired height
                 child: Card(
                   color:
                       Color(0xFFF2D5D5), // Set the background color of the card
@@ -229,6 +278,15 @@ class _DabAdInfoState extends State<DabAdInfo> {
                                     ),
                                   ),
                                 ],
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Etat: ${status['text']}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: getStatusColor(status['color']!),
                               ),
                             ),
                           ],

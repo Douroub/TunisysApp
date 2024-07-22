@@ -45,7 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        errorMessage = "Invalid username or password";
+        errorMessage = "Nom d’utilisateur ou mot de passe non valide";
       });
     }
   }
@@ -68,11 +68,11 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 100),
               TextInput(
                 controller: userController,
-                label: "User",
+                label: "Nom d’utilisateur ",
               ),
               TextInput(
                 controller: passwordController,
-                label: "Password",
+                label: "mot de passe",
                 isPass: true,
               ),
               ElevatedButton(

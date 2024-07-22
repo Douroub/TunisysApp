@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:tunisys_app/screens/admin/dabs_ad_info.dart';
+import 'package:tunisys_app/screens/admin/dabs_ad_list.dart';
 import 'package:tunisys_app/screens/login.dart';
 import 'package:geolocator/geolocator.dart';
-import 'dart:math';
-
 import 'package:tunisys_app/screens/pre_login.dart';
 
 class DabAdDetails extends StatefulWidget {
@@ -29,11 +27,15 @@ class _DabAdDetailsState extends State<DabAdDetails> {
   }
 
   Future<void> _getUserLocation() async {
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      userLatitude = position.latitude;
-      userLongitude = position.longitude;
-    });
+    try {
+      Position position = await Geolocator.getCurrentPosition();
+      setState(() {
+        userLatitude = position.latitude;
+        userLongitude = position.longitude;
+      });
+    } catch (e) {
+      print('Error getting user location: $e');
+    }
   }
 
   double _calculateDistance(
@@ -55,8 +57,8 @@ class _DabAdDetailsState extends State<DabAdDetails> {
   }
 
   String getOpenStatus(dynamic dab) {
-    String beginTimeStr = dab['deviceInfo']['businessBegintime'] ?? '00:00:00';
-    String endTimeStr = dab['deviceInfo']['businessEndtime'] ?? '23:59:59';
+    String beginTimeStr = dab['deviceInfo']?['businessBegintime'] ?? '00:00:00';
+    String endTimeStr = dab['deviceInfo']?['businessEndtime'] ?? '23:59:59';
     bool isOpen = false;
 
     DateTime now = DateTime.now();
@@ -88,8 +90,8 @@ class _DabAdDetailsState extends State<DabAdDetails> {
   }
 
   Color getOpenStatusColor(dynamic dab) {
-    String beginTimeStr = dab['deviceInfo']['businessBegintime'] ?? '00:00:00';
-    String endTimeStr = dab['deviceInfo']['businessEndtime'] ?? '23:59:59';
+    String beginTimeStr = dab['deviceInfo']?['businessBegintime'] ?? '00:00:00';
+    String endTimeStr = dab['deviceInfo']?['businessEndtime'] ?? '23:59:59';
 
     DateTime now = DateTime.now();
     DateTime beginTime = DateTime(
@@ -142,19 +144,77 @@ class _DabAdDetailsState extends State<DabAdDetails> {
     }
   }
 
+  Map<String, String> getDabStatus(int statusId) {
+    switch (statusId) {
+      case 0:
+        return {'text': 'Normal', 'color': 'green'};
+      case 1:
+        return {'text': 'UNKNOWN', 'color': 'gray'};
+      case 2:
+        return {'text': 'PARTIAL FAULT', 'color': 'orange'};
+      case 3:
+        return {'text': 'WARNING', 'color': 'yellow'};
+      case 4:
+        return {'text': 'MAINTENANCE', 'color': 'blue'};
+      case 6:
+        return {'text': 'FAULT', 'color': 'red'};
+      default:
+        return {'text': 'UNKNOWN', 'color': 'gray'};
+    }
+  }
+
+  Color getStatusColor(String color) {
+    switch (color) {
+      case 'green':
+        return Colors.green;
+      case 'gray':
+        return Colors.grey;
+      case 'orange':
+        return Colors.orange;
+      case 'yellow':
+        return Colors.yellow;
+      case 'blue':
+        return Colors.blue;
+      case 'red':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String getCashAvailable(dynamic dab) {
+    List<dynamic> boxStatusDetails =
+        dab['deviceStatus']?['boxStatusDetail'] != null
+            ? jsonDecode(dab['deviceStatus']['boxStatusDetail'])
+            : [];
+    for (var boxStatus in boxStatusDetails) {
+      if (boxStatus['bd'] != null && boxStatus['bd'].isNotEmpty) {
+        return boxStatus['blmc'] ?? '0';
+      }
+    }
+    return '0';
+  }
+
   @override
   Widget build(BuildContext context) {
     var dab = widget.dab;
 
     // Calculer la distance entre l'utilisateur et le DAB
-    double latitude = double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
-    double longitude = double.tryParse(dab['deviceInfo']['longitude']) ?? 0.0;
+    double latitude =
+        double.tryParse(dab['deviceInfo']?['latitude'] ?? '0.0') ?? 0.0;
+    double longitude =
+        double.tryParse(dab['deviceInfo']?['longitude'] ?? '0.0') ?? 0.0;
     double distance = _calculateDistance(
       userLatitude,
       userLongitude,
       latitude,
       longitude,
     );
+
+    int statusId = int.tryParse(dab['deviceStatus']['deviceStatusId']) ?? -1;
+    Map<String, String> status = getDabStatus(statusId);
+
+    String cashAvailable = getCashAvailable(dab);
 
     return Scaffold(
       appBar: AppBar(
@@ -164,7 +224,6 @@ class _DabAdDetailsState extends State<DabAdDetails> {
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),
             onPressed: () {
-              // Navigate to LoginScreen or perform logout action
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -195,7 +254,7 @@ class _DabAdDetailsState extends State<DabAdDetails> {
           children: [
             Container(
               width: 400, // Set your desired width
-              height: 150, // Set your desired height
+              height: 220, // Set your desired height
               child: Card(
                 color:
                     Color(0xFFF2D5D5), // Set the background color of the card
@@ -211,7 +270,7 @@ class _DabAdDetailsState extends State<DabAdDetails> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'DAB name: ${dab['deviceInfo']['termName'] ?? 'N/A'}',
+                            'DAB name: ${dab['deviceInfo']?['termName'] ?? 'N/A'}',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -225,9 +284,27 @@ class _DabAdDetailsState extends State<DabAdDetails> {
                             ),
                           ),
                           Text(
-                            'Adresse: ${dab['deviceInfo']['deptName'] ?? 'N/A'}, ${dab['deviceInfo']['location'] ?? 'N/A'}',
+                            'Adresse: ${dab['deviceInfo']?['deptName'] ?? 'N/A'}, ${dab['deviceInfo']?['location'] ?? 'N/A'}',
                             style: TextStyle(
                               fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Etat: ${status['text']}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: getStatusColor(status['color']!),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Cash disponible: $cashAvailable DT',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.red,
                             ),
                           ),
                           RichText(

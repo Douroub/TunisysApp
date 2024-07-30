@@ -1,12 +1,8 @@
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:tunisys_app/screens/admin/accesAdmin.dart';
 import 'package:tunisys_app/screens/admin/dab_ad_details.dart';
-import 'package:tunisys_app/screens/admin/home_admin.dart';
-import 'package:tunisys_app/screens/login.dart';
 import 'package:tunisys_app/screens/pre_login.dart';
 
 class AccesDispoAdmin extends StatefulWidget {
@@ -19,22 +15,35 @@ class AccesDispoAdmin extends StatefulWidget {
 
 class _AccesDispoAdminState extends State<AccesDispoAdmin> {
   late List<dynamic> dabs;
-  late double userLatitude = 0.0;
-  late double userLongitude = 0.0;
+  double? userLatitude;
+  double? userLongitude;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     dabs = widget.dabsData;
+    // Debug: Print the initial dabs data
+    print('Initial DABs Data: $dabs');
+    dabs.forEach((dab) => print('DAB: $dab'));
     _getUserLocation();
   }
 
   Future<void> _getUserLocation() async {
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      userLatitude = position.latitude;
-      userLongitude = position.longitude;
-    });
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        userLatitude = position.latitude;
+        userLongitude = position.longitude;
+        isLoading = false; // Location has been obtained
+      });
+    } catch (e) {
+      print('Error getting location: $e');
+      setState(() {
+        isLoading = false; // Even if there's an error, stop loading
+      });
+    }
   }
 
   double _calculateDistance(
@@ -197,118 +206,123 @@ class _AccesDispoAdminState extends State<AccesDispoAdmin> {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: dabs.length,
-          itemBuilder: (context, index) {
-            var dab = dabs[index];
-            print('Processing DAB: ${dab['deviceInfo']['termName']}');
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ListView.builder(
+                itemCount: dabs.length,
+                itemBuilder: (context, index) {
+                  var dab = dabs[index];
+                  print('Processing DAB: ${dab['deviceInfo']['termName']}');
 
-            double latitude =
-                double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
-            double longitude =
-                double.tryParse(dab['deviceInfo']['longitude']) ?? 0.0;
+                  double latitude =
+                      double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
+                  double longitude =
+                      double.tryParse(dab['deviceInfo']['longitude']) ?? 0.0;
 
-            double distance = _calculateDistance(
-              userLatitude,
-              userLongitude,
-              latitude,
-              longitude,
-            );
-            int statusId =
-                int.tryParse(dab['deviceStatus']['deviceStatusId']) ?? -1;
-            Map<String, String> status = getDabStatus(statusId);
+                  double distance =
+                      userLatitude != null && userLongitude != null
+                          ? _calculateDistance(
+                              userLatitude!,
+                              userLongitude!,
+                              latitude,
+                              longitude,
+                            )
+                          : 0.0;
+                  int statusId =
+                      int.tryParse(dab['deviceStatus']['deviceStatusId']) ?? -1;
+                  Map<String, String> status = getDabStatus(statusId);
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DabAdDetails(dab: dab),
-                  ),
-                );
-              },
-              child: Container(
-                width: 400, // Set your desired width
-                height: 180, // Set your desired height
-                child: Card(
-                  color:
-                      Color(0xFFF2D5D5), // Set the background color of the card
-                  elevation: 4, // Add elevation for shadow
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(10), // Add border radius
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Stack(
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'DAB name: ${dab['deviceInfo']['termName'] ?? 'N/A'}',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Distance: ${distance.toStringAsFixed(2)} km', // Display calculated distance
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
-                            Text(
-                              'Adresse: ${dab['deviceInfo']['deptName'] ?? 'N/A'}, ${dab['deviceInfo']['location'] ?? 'N/A'}',
-                              style: TextStyle(
-                                fontSize: 16,
-                              ),
-                            ),
-                            RichText(
-                              text: TextSpan(
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DabAdDetails(dab: dab),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: 400, // Set your desired width
+                      height: 180, // Set your desired height
+                      child: Card(
+                        color: Color(
+                            0xFFF2D5D5), // Set the background color of the card
+                        elevation: 4, // Add elevation for shadow
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(10), // Add border radius
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Stack(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  TextSpan(
-                                    text: getOpenStatus(dab),
+                                  Text(
+                                    'DAB name: ${dab['deviceInfo']['termName'] ?? 'N/A'}',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Distance: ${distance.toStringAsFixed(2)} km', // Display calculated distance
                                     style: TextStyle(
                                       fontSize: 16,
-                                      color: getOpenStatusColor(dab),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Adresse: ${dab['deviceInfo']['deptName'] ?? 'N/A'}, ${dab['deviceInfo']['location'] ?? 'N/A'}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: getOpenStatus(dab),
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            color: getOpenStatusColor(dab),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 8),
+                                  Text(
+                                    'Etat: ${status['text']}',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: getStatusColor(status['color']!),
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Etat: ${status['text']}',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: getStatusColor(status['color']!),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Icon(
+                                  Icons.location_on,
+                                  size: 30,
+                                  color: Colors.red,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: Icon(
-                            Icons.location_on,
-                            size: 30,
-                            color: Colors.red,
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
-            );
-          },
-        ),
-      ),
+            ),
     );
   }
 }

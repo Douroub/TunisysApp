@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
    sdk: flutter
-  url_launcher: ^6.0.9
+  url_launcher: ^6.0.20
   http: ^0.13.3
   excel: ^2.0.4
   path_provider: ^2.0.11

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:tunisys_app/screens/admin/accesAdmin.dart';
-import 'package:tunisys_app/screens/admin/dabs_ad_list.dart';
+import 'package:tunisys_app/screens/admin/dabs_ad_info.dart';
 
 class HomeAdmin extends StatefulWidget {
   const HomeAdmin({Key? key}) : super(key: key);
@@ -63,7 +63,7 @@ class __HomeAdminState extends State<HomeAdmin> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.red),
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.pushReplacementNamed(context, '/login');
           },
         ),
         actions: [
@@ -298,14 +298,22 @@ class __HomeAdminState extends State<HomeAdmin> {
     print('Latitude: ${position.latitude}, Longitude: ${position.longitude}');
   }
 
-  Future<List<dynamic>> _fetchNearestDabs() async {
+  Future<List<dynamic>> _fetchNearestDabs(double amount) async {
     try {
-      Position position = await Geolocator.getCurrentPosition();
+      //Ma position actuelle
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      print(
+          'User Position: Latitude - ${position.latitude}, Longitude - ${position.longitude}');
+
+      //Client HTTP
       var client = HttpClient()
         ..badCertificateCallback =
             (X509Certificate cert, String host, int port) => true;
       var url =
           Uri.parse('https://172.28.3.163:8443/feelview/map/getNearestDevice');
+
+      //Requete
       var request = await client.postUrl(url);
       request.headers.set('Content-Type', 'application/json');
       request.headers
@@ -317,9 +325,39 @@ class __HomeAdminState extends State<HomeAdmin> {
       var response = await request.close();
       var responseBody = await response.transform(utf8.decoder).join();
       var jsonData = json.decode(responseBody);
-      print(jsonData);
+      print('Response Data: $jsonData');
 
-      return jsonData['data'];
+      if (jsonData == null || jsonData['data'] == null) {
+        print('No data received from server.');
+        return [];
+      }
+      // Filtrer les DABs pour l'opération de retrait
+      List<dynamic> filteredDabs = jsonData['data'];
+      if (selectedOperation == 'Retrais') {
+        filteredDabs = jsonData['data'].where((dab) {
+          try {
+            var boxStatusDetail =
+                json.decode(dab['deviceStatus']['boxStatusDetail']);
+            for (var boxStatus in boxStatusDetail) {
+              if (boxStatus['bd'] != null &&
+                  boxStatus['bd'].isNotEmpty &&
+                  boxStatus['bd'] != '-') {
+                double dabAmount =
+                    double.tryParse(boxStatus['blmc'].toString()) ?? 0.0;
+                if (dabAmount >= amount) {
+                  return true;
+                }
+              }
+            }
+          } catch (e) {
+            print('Error parsing boxStatusDetail: $e');
+            return false;
+          }
+          return false;
+        }).toList();
+      }
+      print('Filtered and Sorted DABs: $filteredDabs');
+      return filteredDabs;
     } catch (e) {
       print('Error: $e');
       return [];
@@ -327,7 +365,8 @@ class __HomeAdminState extends State<HomeAdmin> {
   }
 
   Future<void> _navigateToDabList(BuildContext context) async {
-    List<dynamic> dabsData = await _fetchNearestDabs();
+    double amount = double.tryParse(amountController.text) ?? 0.0;
+    List<dynamic> dabsData = await _fetchNearestDabs(amount);
     if (selectedOperation == 'Accès administratif') {
       Navigator.pushReplacement(
         context,

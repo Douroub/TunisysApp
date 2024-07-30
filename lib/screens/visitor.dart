@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:tunisys_app/screens/client/home_client.dart';
 
 class VisitorPage extends StatefulWidget {

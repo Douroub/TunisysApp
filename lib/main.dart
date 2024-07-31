@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:tunisys_app/screens/admin/AccesCashAdmin.dart';
 import 'package:tunisys_app/screens/admin/AccesDispoAdmin.dart';
 import 'package:tunisys_app/screens/admin/accesAdmin.dart';
-import 'package:tunisys_app/screens/admin/dabs_ad_list.dart';
+import 'package:tunisys_app/screens/admin/dabs_ad_info.dart';
 import 'package:tunisys_app/screens/client/dab_clt_details.dart';
 import 'package:tunisys_app/screens/client/dabs_clt_info.dart';
 import 'package:tunisys_app/screens/login.dart';

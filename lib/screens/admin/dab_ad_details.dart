@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:tunisys_app/screens/admin/dabs_ad_list.dart';
 import 'package:tunisys_app/screens/login.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:tunisys_app/screens/pre_login.dart';
@@ -17,8 +15,9 @@ class DabAdDetails extends StatefulWidget {
 }
 
 class _DabAdDetailsState extends State<DabAdDetails> {
-  late double userLatitude = 0.0;
-  late double userLongitude = 0.0;
+  double? userLatitude;
+  double? userLongitude;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -28,13 +27,18 @@ class _DabAdDetailsState extends State<DabAdDetails> {
 
   Future<void> _getUserLocation() async {
     try {
-      Position position = await Geolocator.getCurrentPosition();
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
       setState(() {
         userLatitude = position.latitude;
         userLongitude = position.longitude;
+        isLoading = false; // Location has been obtained
       });
     } catch (e) {
-      print('Error getting user location: $e');
+      print('Error getting location: $e');
+      setState(() {
+        isLoading = false; // Even if there's an error, stop loading
+      });
     }
   }
 
@@ -116,34 +120,6 @@ class _DabAdDetailsState extends State<DabAdDetails> {
     }
   }
 
-  Future<List<dynamic>> _fetchNearestDabs() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition();
-      var client = HttpClient()
-        ..badCertificateCallback =
-            (X509Certificate cert, String host, int port) => true;
-      var url =
-          Uri.parse('https://172.28.3.163:8443/feelview/map/getNearestDevice');
-      var request = await client.postUrl(url);
-      request.headers.set('Content-Type', 'application/json');
-      request.headers
-          .set('Referer', 'https://172.28.3.163:8443/feelview/map/demo');
-      request.add(utf8.encode(json.encode({
-        'longitude': position.longitude.toString(),
-        'latitude': position.latitude.toString(),
-      })));
-      var response = await request.close();
-      var responseBody = await response.transform(utf8.decoder).join();
-      var jsonData = json.decode(responseBody);
-      print(jsonData);
-
-      return jsonData['data'];
-    } catch (e) {
-      print('Error: $e');
-      return [];
-    }
-  }
-
   Map<String, String> getDabStatus(int statusId) {
     switch (statusId) {
       case 0:
@@ -184,11 +160,18 @@ class _DabAdDetailsState extends State<DabAdDetails> {
 
   String getCashAvailable(dynamic dab) {
     List<dynamic> boxStatusDetails =
-        dab['deviceStatus']?['boxStatusDetail'] != null
+        dab['deviceStatus']['boxStatusDetail'] != null
             ? jsonDecode(dab['deviceStatus']['boxStatusDetail'])
             : [];
+
     for (var boxStatus in boxStatusDetails) {
-      if (boxStatus['bd'] != null && boxStatus['bd'].isNotEmpty) {
+      // Debug print for bd and blmc
+      print('bd: ${boxStatus['bd']}, blmc: ${boxStatus['blmc']}');
+
+      // Check if bd is not empty and not equal to '-'
+      if (boxStatus['bd'] != null &&
+          boxStatus['bd'].isNotEmpty &&
+          boxStatus['bd'] != '-') {
         return boxStatus['blmc'] ?? '0';
       }
     }
@@ -199,17 +182,14 @@ class _DabAdDetailsState extends State<DabAdDetails> {
   Widget build(BuildContext context) {
     var dab = widget.dab;
 
-    // Calculer la distance entre l'utilisateur et le DAB
     double latitude =
         double.tryParse(dab['deviceInfo']?['latitude'] ?? '0.0') ?? 0.0;
     double longitude =
         double.tryParse(dab['deviceInfo']?['longitude'] ?? '0.0') ?? 0.0;
-    double distance = _calculateDistance(
-      userLatitude,
-      userLongitude,
-      latitude,
-      longitude,
-    );
+
+    double distance = userLatitude != null && userLongitude != null
+        ? _calculateDistance(userLatitude!, userLongitude!, latitude, longitude)
+        : 0.0;
 
     int statusId = int.tryParse(dab['deviceStatus']['deviceStatusId']) ?? -1;
     Map<String, String> status = getDabStatus(statusId);
@@ -235,140 +215,137 @@ class _DabAdDetailsState extends State<DabAdDetails> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.red),
           onPressed: () async {
-            List<dynamic> dabsData = await _fetchNearestDabs();
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DabAdInfo(
-                  dabsData: dabsData,
-                ),
-              ),
-            );
+            Navigator.of(context).pop();
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Container(
-              width: 400, // Set your desired width
-              height: 220, // Set your desired height
-              child: Card(
-                color:
-                    Color(0xFFF2D5D5), // Set the background color of the card
-                elevation: 4, // Add elevation for shadow
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10), // Add border radius
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Stack(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'DAB name: ${dab['deviceInfo']?['termName'] ?? 'N/A'}',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Distance: ${distance.toStringAsFixed(2)} km',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            'Adresse: ${dab['deviceInfo']?['deptName'] ?? 'N/A'}, ${dab['deviceInfo']?['location'] ?? 'N/A'}',
-                            style: TextStyle(
-                              fontSize: 16,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Etat: ${status['text']}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: getStatusColor(status['color']!),
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Cash disponible: $cashAvailable DT',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          ),
-                          RichText(
-                            text: TextSpan(
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  Container(
+                    width: 400, // Set your desired width
+                    height: 220, // Set your desired height
+                    child: Card(
+                      color: Color(
+                          0xFFF2D5D5), // Set the background color of the card
+                      elevation: 4, // Add elevation for shadow
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(10), // Add border radius
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Stack(
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                TextSpan(
-                                  text: getOpenStatus(dab),
+                                Text(
+                                  'DAB name: ${dab['deviceInfo']?['termName'] ?? 'N/A'}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  userLatitude != null && userLongitude != null
+                                      ? 'Distance: ${distance.toStringAsFixed(2)} km'
+                                      : 'Calcul de la distance...',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: getOpenStatusColor(dab),
+                                  ),
+                                ),
+                                Text(
+                                  'Adresse: ${dab['deviceInfo']?['deptName'] ?? 'N/A'}, ${dab['deviceInfo']?['location'] ?? 'N/A'}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Etat: ${status['text']}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: getStatusColor(status['color']!),
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Cash disponible: $cashAvailable DT',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                RichText(
+                                  text: TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: getOpenStatus(dab),
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: getOpenStatusColor(dab),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Icon(
-                          Icons.location_on,
-                          size: 30,
-                          color: Colors.red,
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: Icon(
+                                Icons.location_on,
+                                size: 30,
+                                color: Colors.red,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16), // Space between card and button
-            SizedBox(
-              width: 400, // Match the width of the card
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.red, // Text and icon color
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(10), // Add border radius
-                  ),
-                ),
-                icon: Icon(Icons.map),
-                label: Text("Lineariser"),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LoginScreen(title: 'Log'),
                     ),
-                  );
-                },
+                  ),
+                  SizedBox(height: 16), // Space between card and button
+                  SizedBox(
+                    width: 400, // Match the width of the card
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.red, // Text and icon color
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(10), // Add border radius
+                        ),
+                      ),
+                      icon: Icon(Icons.map),
+                      label: Text("Lineariser"),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LoginScreen(title: 'Log'),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Image.asset(
+                      'assets/maps.png', // Ensure you have this image in your assets folder
+                      height: 170,
+                      width: 330),
+                ],
               ),
             ),
-            SizedBox(
-              height: 10,
-            ),
-            Image.asset(
-                'assets/maps.png', // Ensure you have this image in your assets folder
-                height: 170,
-                width: 330),
-          ],
-        ),
-      ),
     );
   }
 }

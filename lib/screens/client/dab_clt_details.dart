@@ -1,12 +1,6 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:tunisys_app/screens/client/dabs_clt_info.dart';
-import 'package:tunisys_app/screens/login.dart';
 import 'dart:math';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:tunisys_app/screens/pre_login.dart';
 
 class DabCltDetails extends StatefulWidget {
@@ -19,8 +13,9 @@ class DabCltDetails extends StatefulWidget {
 }
 
 class _DabCltDetailsState extends State<DabCltDetails> {
-  late double userLatitude = 0.0;
-  late double userLongitude = 0.0;
+  double? userLatitude;
+  double? userLongitude;
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -29,11 +24,20 @@ class _DabCltDetailsState extends State<DabCltDetails> {
   }
 
   Future<void> _getUserLocation() async {
-    Position position = await Geolocator.getCurrentPosition();
-    setState(() {
-      userLatitude = position.latitude;
-      userLongitude = position.longitude;
-    });
+    try {
+      Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high);
+      setState(() {
+        userLatitude = position.latitude;
+        userLongitude = position.longitude;
+        isLoading = false; // Location has been obtained
+      });
+    } catch (e) {
+      print('Error getting location: $e');
+      setState(() {
+        isLoading = false; // Even if there's an error, stop loading
+      });
+    }
   }
 
   double _calculateDistance(
@@ -114,92 +118,59 @@ class _DabCltDetailsState extends State<DabCltDetails> {
     }
   }
 
-  Future<List<dynamic>> _fetchNearestDabs() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition();
-      var client = HttpClient()
-        ..badCertificateCallback =
-            (X509Certificate cert, String host, int port) => true;
-      var url =
-          Uri.parse('https://172.28.3.163:8443/feelview/map/getNearestDevice');
-      var request = await client.postUrl(url);
-      request.headers.set('Content-Type', 'application/json');
-      request.headers
-          .set('Referer', 'https://172.28.3.163:8443/feelview/map/demo');
-      request.add(utf8.encode(json.encode({
-        'longitude': position.longitude.toString(),
-        'latitude': position.latitude.toString(),
-      })));
-      var response = await request.close();
-      var responseBody = await response.transform(utf8.decoder).join();
-      var jsonData = json.decode(responseBody);
-      print(jsonData);
-
-      return jsonData['data'];
-    } catch (e) {
-      print('Error: $e');
-      return [];
-    }
-  }
-
-  void _launchSimpleUrl() async {
-    const String testUrl = 'https://www.google.com';
-
-    try {
-      if (await canLaunch(testUrl)) {
-        await launch(testUrl);
-      } else {
-        throw 'Could not launch $testUrl';
-      }
-    } catch (e) {
-      print('Error launching URL: $e');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Could not launch URL.')));
-    }
-  }
-
-  void _launchMaps(double lat, double lon) async {
-    final String googleMapsUrl = Uri.encodeFull(
-        "https://www.google.com/maps/dir/?api=1&origin=$userLatitude,$userLongitude&destination=$lat,$lon&travelmode=driving");
-
-    print('Launching URL: $googleMapsUrl'); // Debugging line
-
-    try {
-      if (await canLaunch(googleMapsUrl)) {
-        await launch(googleMapsUrl);
-      } else {
-        throw 'Could not launch $googleMapsUrl';
-      }
-    } catch (e) {
-      print('Error launching URL: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not launch Google Maps.')));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     var dab = widget.dab;
 
-    // Calculer la distance entre l'utilisateur et le DAB
     double latitude = double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
     double longitude = double.tryParse(dab['deviceInfo']['longitude']) ?? 0.0;
+
+    // Afficher un indicateur de chargement si la localisation n'est pas encore obtenue
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Color(0xFFF2D5D5),
+          title: Text('DAB Informations'),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.logout, color: Colors.red),
+              onPressed: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PreLoginPage(),
+                  ),
+                );
+              },
+            ),
+          ],
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.red),
+            onPressed: () async {
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Calculer la distance entre l'utilisateur et le DAB
     double distance = _calculateDistance(
-      userLatitude,
-      userLongitude,
+      userLatitude ?? 0.0,
+      userLongitude ?? 0.0,
       latitude,
       longitude,
     );
-    _launchMaps(latitude, longitude);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFFF2D5D5),
+        title: Text('DAB Informations'),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),
             onPressed: () {
-              // Navigate to LoginScreen or perform logout action
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
@@ -212,15 +183,7 @@ class _DabCltDetailsState extends State<DabCltDetails> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.red),
           onPressed: () async {
-            List<dynamic> dabsData = await _fetchNearestDabs();
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => DabCltInfo(
-                  dabsData: dabsData,
-                ),
-              ),
-            );
+            Navigator.of(context).pop();
           },
         ),
       ),
@@ -309,11 +272,12 @@ class _DabCltDetailsState extends State<DabCltDetails> {
                 icon: Icon(Icons.map),
                 label: Text("Lineariser"),
                 onPressed: () {
-                  final double latitude =
-                      double.tryParse(dab['deviceInfo']['latitude']) ?? 0.0;
-                  final double longitude =
-                      double.tryParse(dab['deviceInfo']['longitude']) ?? 0.0;
-                  _launchMaps(latitude, longitude);
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PreLoginPage(),
+                    ),
+                  );
                 },
               ),
             ),

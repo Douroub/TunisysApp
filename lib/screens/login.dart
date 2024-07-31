@@ -55,6 +55,13 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.red.shade50,
       appBar: AppBar(
+        backgroundColor: Colors.red.shade50,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.red),
+          onPressed: () {
+            Navigator.pushReplacementNamed(context, '/prelogin');
+          },
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.logout, color: Colors.red),
